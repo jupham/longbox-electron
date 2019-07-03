@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from 'electron';
+import "reflect-metadata";
 declare let MAIN_WINDOW_WEBPACK_ENTRY: any;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.

@@ -60,15 +60,15 @@
     }
   },
   "dependencies": {
-    "@types/semantic-ui": "^2.2.7",
-    "@typescript-eslint/eslint-plugin": "^1.11.0",
-    "@typescript-eslint/parser": "^1.11.0",
     "electron-squirrel-startup": "^1.0.0",
     "react": "16.8.6",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.1",
+    "reflect-metadata": "^0.1.13",
     "semantic-ui-css": "^2.4.1",
-    "semantic-ui-react": "^0.87.2"
+    "semantic-ui-react": "^0.87.2",
+    "sql.js": "0.5.0",
+    "typeorm": "^0.2.18"
   },
   "devDependencies": {
     "@electron-forge/cli": "6.0.0-beta.39",
@@ -78,11 +78,17 @@
     "@electron-forge/maker-zip": "6.0.0-beta.39",
     "@electron-forge/plugin-webpack": "6.0.0-beta.39",
     "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
+    "@types/node": "^12.0.10",
     "@types/react": "^16.8.22",
     "@types/react-dom": "^16.8.4",
     "@types/react-router-dom": "^4.3.4",
+    "@types/semantic-ui": "^2.2.7",
+    "@types/sql.js": "^1.0.1",
+    "@typescript-eslint/eslint-plugin": "^1.11.0",
+    "@typescript-eslint/parser": "^1.11.0",
     "electron": "5.0.6",
     "electron-devtools-installer": "^2.2.4",
+    "electron-rebuild": "^1.8.5",
     "eslint": "^6.0.1",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-html": "^6.0.0",

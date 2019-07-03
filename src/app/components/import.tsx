@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 import * as electron from 'electron';
-import { Menu, Input, Button, Table, Checkbox, Container } from 'semantic-ui-react';
+import "reflect-metadata";
+import {createConnection} from "typeorm";
+import {Comic} from "../entity/comic";
+import {
+    Menu,
+    Input,
+    Button,
+    Table,
+    Checkbox,
+    Container,
+    Segment,
+    Dimmer,
+    Loader,
+} from 'semantic-ui-react';
 import * as path from 'path';
-import * as fstmp from 'fs';
-import { string } from 'prop-types';
-
-const fs = fstmp.promises;
+import * as fs from 'fs';
 
 const Import: React.FunctionComponent = () => {
     const [comicPath, setComicPath] = useState('');
-    const [comicFileList, setComicFileList] = useState(new Array<string>());
+    const [comicFileList, setComicFileList] = useState(new Array<{checked: boolean, file: string}>());
+    const [loading, setLoading] = useState(false);
 
     async function getDirectoryPath() {
         let paths = await electron.remote.dialog.showOpenDialog({
@@ -20,34 +31,84 @@ const Import: React.FunctionComponent = () => {
         }
     }
 
+    const handleChangeCheckbox = (file: string) => {
+        setLoading(true);
+        setComicFileList(
+            comicFileList.map(cf => {
+                if (cf.file === file) {
+                  return { ...cf, checked: !cf.checked };
+                } else {
+                  return cf;
+                }
+              })
+        );
+        setLoading(false);
+    }
+
+    const selectAllComics = () => {
+        setLoading(true);
+        setComicFileList(
+            comicFileList.map(cf => {
+                return { ...cf, checked: true };
+            })
+        );
+        setLoading(false);
+    }
+
+    const importSelectedComics = async () => {
+        let connection = await createConnection({
+            type: "sqljs",
+            location: "C:\\Users\\Jordan\\source\\repos\\longbox-electron\\dbtest.db",
+            autoSave: true,
+            synchronize: true,
+            entities: [
+                Comic
+            ]
+        });
+
+        for(let i = 0; i < comicFileList.length; i++) {
+            let comicFile = comicFileList[i];
+            if (comicFile.checked) {
+                let comic = new Comic();
+                comic.filePath = comicFile.file;
+                comic.name = path.basename(comic.filePath, path.extname(comicFile.file));
+
+                let result = await connection.manager.save(comic);
+                console.log(result);
+            }
+        }
+    }
+
     async function getComicList() {
-        let isDirectory = (await fs.lstat(comicPath)).isDirectory();
-        let fileList = new Array<string>();
+        setLoading(true);
+        let isDirectory = (fs.lstatSync(comicPath)).isDirectory();
+        let fileList = new Array<{checked: boolean, file: string}>();
         console.log(`Scanning Directory ${comicPath}`);
         if (isDirectory) {
             await traverseDirectory(comicPath, fileList);
         } else {
-            fileList.push(comicPath);
+            fileList.push({checked: false, file: comicPath});
         }
 
         console.log('FINISHED');
         setComicFileList(fileList);
+        setLoading(false);
     }
 
-    async function traverseDirectory(dir: string, fileList: string[]) {
+    async function traverseDirectory(dir: string, fileList:Array<{checked: boolean, file: string}>) {
         console.log(`Traversing Directory ${dir}`);
-        let files = await fs.readdir(dir);
+        let files = fs.readdirSync(dir);
         for (let i = 0; i < files.length; i++) {
             let file = files[i];
             let fullPath = path.join(dir, file);
             console.log(`Testing file ${fullPath}`);
-            let isDirectory = (await fs.lstat(fullPath)).isDirectory();
+            let isDirectory = (fs.lstatSync(fullPath)).isDirectory();
             if (isDirectory) {
                 await traverseDirectory(fullPath, fileList);
             } else {
                 let extension = path.extname(file);
                 if (extension == '.cbz' || extension == '.cbr') {
-                    fileList.push(file);
+                    fileList.push({checked: false, file: file});
                 }
             }
         }
@@ -64,32 +125,47 @@ const Import: React.FunctionComponent = () => {
                         </Button>
                     </Input>
                 </Menu.Item>
-                <Menu.Item position='right' onClick={() => getComicList()}>
+                <Menu.Item onClick={() => getComicList()}>
                     Find Comics
                 </Menu.Item>
+                <Menu.Item  onClick={() => selectAllComics()}>
+                    Select All
+                </Menu.Item>
+                <Menu.Item position='right' onClick={() => importSelectedComics()}>
+                    Import Selected
+                </Menu.Item>
             </Menu>
-            <Container>
-            <Table celled>
-                <Table.Header>
-                    <Table.Row>
-                        <Table.HeaderCell collapsing>Import</Table.HeaderCell>
-                        <Table.HeaderCell>File</Table.HeaderCell>
-                    </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                    {comicFileList.map((file) => {
-                        return (<Table.Row key='file'>
-                            <Table.Cell collapsing>
-                                <Checkbox />
-                            </Table.Cell>
-                            <Table.Cell>
-                                {file}
-                            </Table.Cell>
-                        </Table.Row>)
-                    })}
-                </Table.Body>
-            </Table>
-            </Container>
+            <Segment>
+                <Dimmer active={loading}>
+                    <Loader indeterminate>Preparing Files</Loader>
+                </Dimmer>
+                <Container>
+                    <Table celled>
+                        <Table.Header>
+                            <Table.Row>
+                                <Table.HeaderCell collapsing>
+                                    Import
+                                </Table.HeaderCell>
+                                <Table.HeaderCell>File</Table.HeaderCell>
+                            </Table.Row>
+                        </Table.Header>
+                        <Table.Body>
+                            {comicFileList.map(file => {
+                                return (
+                                    <Table.Row key={file.file}>
+                                        <Table.Cell collapsing>
+                                            <Checkbox checked={file.checked} onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                                handleChangeCheckbox(file.file);
+                                            }} />
+                                        </Table.Cell>
+                                        <Table.Cell>{file.file}</Table.Cell>
+                                    </Table.Row>
+                                );
+                            })}
+                        </Table.Body>
+                    </Table>
+                </Container>
+            </Segment>
         </div>
     );
 };
