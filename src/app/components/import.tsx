@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as electron from 'electron';
 import "reflect-metadata";
-import {createConnection} from "typeorm";
+const {ipcRenderer} = require('electron-better-ipc');
 import {Comic} from "../entity/comic";
 import {
     Menu,
@@ -56,27 +56,20 @@ const Import: React.FunctionComponent = () => {
     }
 
     const importSelectedComics = async () => {
-        let connection = await createConnection({
-            type: "sqljs",
-            location: "C:\\Users\\Jordan\\source\\repos\\longbox-electron\\dbtest.db",
-            autoSave: true,
-            synchronize: true,
-            entities: [
-                Comic
-            ]
-        });
-
+        setLoading(true);
+        let writeComics = new Array<Comic>();
         for(let i = 0; i < comicFileList.length; i++) {
             let comicFile = comicFileList[i];
             if (comicFile.checked) {
                 let comic = new Comic();
                 comic.filePath = comicFile.file;
                 comic.name = path.basename(comic.filePath, path.extname(comicFile.file));
-
-                let result = await connection.manager.save(comic);
-                console.log(result);
+                writeComics.push(comic);
             }
         }
+        const result = await ipcRenderer.callMain('storeComic', writeComics);
+        console.log(result);
+        setLoading(false);
     }
 
     async function getComicList() {

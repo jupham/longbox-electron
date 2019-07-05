@@ -5,8 +5,9 @@ module.exports = {
      */
     entry: './src/main.ts',
     // Put your normal webpack config below here
-    externals: {
-        fs: 'require("fs")',
+    resolve: {
+        // Add '.ts' and '.tsx' as resolvable extensions.
+        extensions: ['.ts', '.tsx', '.js'],
     },
     module: {
         rules: require('./webpack.rules'),
