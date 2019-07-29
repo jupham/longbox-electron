@@ -10,17 +10,13 @@ class App extends Component {
     render() {
         return (
             <Router>
-                <div
-                    style={{
-                        height: '100vh',
-                        display: 'flex',
-                        flexDirection: 'row',
-                    }}
-                >
+                <div>
                     <LeftNav>
-                    <Route exact path='/' component={ComicGrid} />
-                        <Route path='/import' component={Import} />
-                        <Route path='/settings' component={Settings} />
+                        <div  style={{position: 'absolute', left:'84px', height: '100vh', width: 'calc(100vw - 84px)', padding: '5px', overflow: 'auto'}}>
+                            <Route exact path='/' component={ComicGrid} />
+                            <Route path='/import' component={Import} />
+                            <Route path='/settings' component={Settings} />
+                        </div>
                     </LeftNav>
                 </div>
             </Router>

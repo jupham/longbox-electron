@@ -94,3 +94,16 @@ ipcMain.answerRenderer('storeComic', async (writeComics: Comic[]) => {
     }
     return true;
 });
+
+ipcMain.answerRenderer('getComics', async (): Promise<any> => {
+    console.log('GET COMICS');
+
+    try {
+        let results = await getConnection()
+                .getRepository(Comic)
+                .find();
+        return results;
+    } catch (err) {
+        console.log(`Failure getting comics\n${err}`);
+    }
+});

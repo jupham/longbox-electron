@@ -27,7 +27,7 @@ const LeftNav: React.FunctionComponent = ({ children }) => {
                     Settings
                 </Menu.Item>
             </Menu>
-            <div style={{position: 'absolute', left:'84px'}}>
+            <div>
                 {children}
             </div>
         </div>
